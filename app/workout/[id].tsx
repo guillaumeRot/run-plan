@@ -1,11 +1,11 @@
-import React from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, View } from '@/components/Themed';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useWorkouts } from '@/context/WorkoutContext';
-import { ArrowLeft, Sparkles, Activity } from 'lucide-react-native';
-import { formatDateToFR } from '@/utils/date';
 import { TYPE_COLORS, TYPE_ICONS } from '@/constants/WorkoutStyles';
+import { useWorkouts } from '@/context/WorkoutContext';
+import { formatDateToFR } from '@/utils/date';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Activity, ArrowLeft, Sparkles } from 'lucide-react-native';
+import React from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 
 export default function WorkoutDetailScreen() {

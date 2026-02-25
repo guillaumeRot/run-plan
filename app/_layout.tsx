@@ -11,7 +11,7 @@ import { WorkoutProvider } from '@/context/WorkoutContext';
 
 export {
   // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
+  ErrorBoundary
 } from 'expo-router';
 
 export const unstable_settings = {
@@ -55,6 +55,8 @@ function RootLayoutNav() {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="day-workouts/[date]" options={{ headerShown: false }} />
+          <Stack.Screen name="workout/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         </Stack>
       </ThemeProvider>

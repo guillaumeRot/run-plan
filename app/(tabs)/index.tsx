@@ -1,164 +1,167 @@
-import React, { useMemo } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
-import { Calendar } from 'react-native-calendars';
 import { Text, View } from '@/components/Themed';
-import { useWorkouts } from '@/context/WorkoutContext';
-import { Plus } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
-import { LocaleConfig } from 'react-native-calendars';
-import { formatDateToFR } from '@/utils/date';
 import { TYPE_COLORS, TYPE_ICONS } from '@/constants/WorkoutStyles';
+import { useWorkouts } from '@/context/WorkoutContext';
+import { useRouter } from 'expo-router';
+import { Activity, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
-LocaleConfig.locales['fr'] = {
-  monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
-  monthNamesShort: ['Janv.', 'Févr.', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil.', 'Août', 'Sept.', 'Oct.', 'Nov.', 'Déc.'],
-  dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
-  dayNamesShort: ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'],
-  today: "Aujourd'hui"
-};
-LocaleConfig.defaultLocale = 'fr';
+const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+const MONTHS = [
+  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+];
 
 export default function CalendarScreen() {
   const router = useRouter();
+  const [currentDate, setCurrentDate] = useState(new Date());
   const { workouts } = useWorkouts();
 
-  const markedDates = useMemo(() => {
-    const marks: any = {};
-    workouts.forEach((w) => {
-      if (!marks[w.date]) {
-        marks[w.date] = { workouts: [] };
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  // Adjust to start on Monday (0 is Sunday, 1 is Monday, ..., 6 is Saturday)
+  const startingDayIndex = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+  const today = new Date();
+  const isToday = (day: number) =>
+    day === today.getDate() &&
+    month === today.getMonth() &&
+    year === today.getFullYear();
+
+  const formatWorkoutDate = (day: number) => {
+    const d = new Date(year, month, day);
+    // Local date format YYYY-MM-DD
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dayStr = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dayStr}`;
+  };
+
+  const calculateMetrics = (workout: any) => {
+    let totalDist = 0;
+    let totalDur = 0;
+
+    workout.segments.forEach((s: any) => {
+      if (s.distance) {
+        const d = parseFloat(s.distance.replace('km', ''));
+        if (!isNaN(d)) totalDist += d;
       }
-      marks[w.date].workouts.push(w);
+      if (s.duration) {
+        // Handle "45min", "1h30", "90min"
+        let mins = 0;
+        const dur = s.duration.toLowerCase();
+        if (dur.includes('h')) {
+          const parts = dur.split('h');
+          mins += parseInt(parts[0]) * 60;
+          if (parts[1]) mins += parseInt(parts[1]);
+        } else {
+          mins += parseInt(dur);
+        }
+        if (!isNaN(mins)) totalDur += mins;
+      }
     });
-    return marks;
-  }, [workouts]);
 
-  const CustomDay = ({ date, state, marking }: any) => {
-    const dayWorkouts = marking?.workouts || [];
-    const isToday = state === 'today';
-    const isDisabled = state === 'disabled';
+    const distStr = totalDist > 0 ? `${totalDist} km` : null;
 
-    const calculateTotals = (workout: any) => {
-      let totalDist = 0;
-      let totalDuration = 0;
+    let durStr = null;
+    if (totalDur > 0) {
+      const h = Math.floor(totalDur / 60);
+      const m = totalDur % 60;
+      if (h > 0) {
+        durStr = `${h}h${m > 0 ? m : ''}`;
+      } else {
+        durStr = `${m} min`;
+      }
+    }
 
-      workout.segments.forEach((s: any) => {
-        if (s.distance) {
-          const dist = parseFloat(s.distance.replace(/[^\d.]/g, ''));
-          if (!isNaN(dist)) totalDist += dist;
-        }
-        if (s.duration) {
-          const dur = parseFloat(s.duration.replace(/[^\d.]/g, ''));
-          if (!isNaN(dur)) totalDuration += dur;
-        }
-      });
+    return { distStr, durStr };
+  };
 
-      return {
-        distance: totalDist > 0 ? `${totalDist.toFixed(1)}km` : null,
-        duration: totalDuration > 0 ? `${totalDuration}m` : null,
-      };
-    };
+  const renderWeeks = () => {
+    const weeks = [];
+    let currentWeek = [];
 
-    return (
-      <TouchableOpacity
-        style={styles.dayCell}
-        onPress={() => {
-          if (dayWorkouts.length >= 1) {
-            router.push(`/workout/${dayWorkouts[0].id}`);
-          }
-        }}
-      >
-        <Text style={[
-          styles.dayText,
-          isToday && styles.todayText,
-          isDisabled && styles.disabledText
-        ]}>
-          {date.day}
-        </Text>
-        <View style={styles.markersContainer}>
-          {dayWorkouts.map((w: any) => {
-            const Icon = TYPE_ICONS[w.type as keyof typeof TYPE_ICONS];
-            const totals = calculateTotals(w);
-            return (
-              <View
-                key={w.id}
-                style={[
-                  styles.workoutMarker,
-                  { backgroundColor: TYPE_COLORS[w.type as keyof typeof TYPE_COLORS] || '#ccc' }
-                ]}
-              >
-                {Icon && <Icon size={12} color="#FFF" style={styles.markerIcon} />}
-                {(totals.distance || totals.duration) && (
-                  <Text style={styles.markerText}>
-                    {totals.distance && totals.distance}
-                    {totals.distance && totals.duration && ' • '}
-                    {totals.duration && totals.duration}
-                  </Text>
-                )}
+    // Padding for the first week
+    for (let i = 0; i < startingDayIndex; i++) {
+      currentWeek.push(<View key={`empty-${i}`} style={styles.dayCell} />);
+    }
+
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dateStr = formatWorkoutDate(i);
+      const dayWorkouts = workouts.filter(w => w.date === dateStr);
+      const firstWorkout = dayWorkouts[0];
+      const metrics = firstWorkout ? calculateMetrics(firstWorkout) : null;
+      const Icon = firstWorkout ? (TYPE_ICONS[firstWorkout.type] || Activity) : null;
+
+      currentWeek.push(
+        <TouchableOpacity
+          key={i}
+          activeOpacity={0.7}
+          onPress={() => router.push({ pathname: '/day-workouts/[date]', params: { date: dateStr } })}
+          style={styles.dayCell}
+        >
+          <View style={[styles.dayInner, isToday(i) && styles.todayInner]}>
+            <Text style={[styles.dayText, isToday(i) && styles.todayText]}>
+              {i}
+            </Text>
+          </View>
+
+          {firstWorkout && (
+            <View style={[styles.workoutBlock, { backgroundColor: TYPE_COLORS[firstWorkout.type] || '#ccc' }]}>
+              {Icon && <Icon size={12} color="#FFFFFF" style={styles.workoutIcon} />}
+              <View style={styles.metricsContainer}>
+                {metrics?.distStr && <Text style={styles.workoutText}>{metrics.distStr}</Text>}
+                {metrics?.durStr && <Text style={styles.workoutText}>{metrics.durStr}</Text>}
               </View>
-            );
-          })}
-        </View>
-      </TouchableOpacity>
-    );
+            </View>
+          )}
+        </TouchableOpacity>
+      );
+
+      if (currentWeek.length === 7) {
+        weeks.push(<View key={`week-${weeks.length}`} style={styles.weekRow}>{currentWeek}</View>);
+        currentWeek = [];
+      }
+    }
+
+    // Padding for the last week
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) {
+        currentWeek.push(<View key={`empty-last-${currentWeek.length}`} style={styles.dayCell} />);
+      }
+      weeks.push(<View key={`week-${weeks.length}`} style={styles.weekRow}>{currentWeek}</View>);
+    }
+
+    return weeks;
   };
 
   return (
     <View style={styles.container}>
-      <Calendar
-        firstDay={1}
-        dayComponent={CustomDay}
-        markedDates={markedDates}
-        style={styles.calendar}
-        theme={{
-          calendarBackground: '#FFFFFF',
-          textSectionTitleColor: '#94A3B8',
-          monthTextColor: '#111827',
-          textMonthFontWeight: '500',
-          textDayHeaderFontWeight: '500',
-          textDayFontFamily: 'RobotoMediumItalic',
-          textMonthFontFamily: 'RobotoMediumItalic',
-          textDayHeaderFontFamily: 'RobotoMediumItalic',
-          weekVerticalMargin: 0,
-          // @ts-ignore - Common pattern for react-native-calendars
-          'stylesheet.calendar.main': {
-            container: {
-              flex: 1,
-              paddingLeft: 0,
-              paddingRight: 0,
-              marginTop: 0,
-              marginBottom: 0,
-              backgroundColor: '#FFFFFF',
-              height: '100%',
-            },
-            monthView: {
-              flex: 1,
-              marginBottom: 0,
-              paddingBottom: 0,
-            },
-            week: {
-              flexDirection: 'row',
-              flex: 1,
-              marginVertical: 0,
-              paddingVertical: 0,
-            },
-          },
-          'stylesheet.calendar.header': {
-            header: {
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              paddingLeft: 10,
-              paddingRight: 10,
-              marginTop: 0,
-              alignItems: 'center',
-              backgroundColor: '#FFF',
-              borderBottomWidth: 1,
-              borderBottomColor: '#E2E8F0',
-              paddingBottom: 10,
-            }
-          }
-        } as any}
-      />
+      <View style={styles.header}>
+        <TouchableOpacity onPress={prevMonth} style={styles.navButton}>
+          <ChevronLeft size={24} color="#0066FF" />
+        </TouchableOpacity>
+        <Text style={styles.monthTitle}>{MONTHS[month]} {year}</Text>
+        <TouchableOpacity onPress={nextMonth} style={styles.navButton}>
+          <ChevronRight size={24} color="#0066FF" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.daysHeader}>
+        {DAYS.map(day => (
+          <Text key={day} style={styles.dayHeaderCell}>{day}</Text>
+        ))}
+      </View>
+
+      <View style={styles.grid}>
+        {renderWeeks()}
+      </View>
     </View>
   );
 }
@@ -167,59 +170,106 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    paddingHorizontal: 8,
+    paddingTop: 10,
+    paddingBottom: 5,
   },
-  calendar: {
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    height: 40,
+    paddingHorizontal: 8,
+  },
+  monthTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    fontFamily: 'RobotoMediumItalic',
+    textAlign: 'center',
     flex: 1,
-    paddingTop: 0,
-    marginTop: 0,
-    paddingBottom: 0,
-    marginBottom: 0,
-    height: '100%',
+  },
+  navButton: {
+    padding: 8,
+    width: 44,
+    alignItems: 'center',
+  },
+  daysHeader: {
+    flexDirection: 'row',
+    marginBottom: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    paddingBottom: 5,
+  },
+  dayHeaderCell: {
+    flex: 1,
+    textAlign: 'center',
+    color: '#94A3B8',
+    fontSize: 12,
+    fontWeight: '500',
+    fontFamily: 'RobotoMediumItalic',
+  },
+  grid: {
+    flex: 1,
+  },
+  weekRow: {
+    flex: 1,
+    flexDirection: 'row',
   },
   dayCell: {
     flex: 1,
-    minHeight: 120,
-    width: '100%',
     alignItems: 'center',
-    justifyContent: 'flex-start',
     paddingTop: 4,
-    borderWidth: 0.5,
-    borderColor: '#F1F5F9',
+  },
+  dayInner: {
+    width: 26,
+    height: 26,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 13,
+    marginBottom: 2,
+  },
+  todayInner: {
+    backgroundColor: '#0066FF',
   },
   dayText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#64748B',
-    marginBottom: 2,
+    color: '#4B5563',
+    fontFamily: 'RobotoMediumItalic',
   },
   todayText: {
-    color: '#0066FF',
-    fontWeight: '900',
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
-  disabledText: {
-    color: '#CBD5E1',
+  workoutBlock: {
+    width: '92%',
+    borderRadius: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
   },
-  markersContainer: {
-    width: '100%',
-    paddingHorizontal: 2,
-    gap: 2,
+  workoutIcon: {
+    marginBottom: 2,
+  },
+  metricsContainer: {
+    alignItems: 'center',
     backgroundColor: 'transparent',
   },
-  workoutMarker: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 4,
-    width: '100%',
-  },
-  markerIcon: {
-    marginRight: 4,
-  },
-  markerText: {
-    fontSize: 10,
-    color: '#FFF',
-    fontWeight: '800',
-    flex: 1,
+  workoutText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '700',
+    fontFamily: 'RobotoMediumItalic',
+    textAlign: 'center',
+    lineHeight: 11,
   },
 });
+
+
+
+
+
