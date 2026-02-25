@@ -111,7 +111,7 @@ export default function CalendarScreen() {
         markedDates={markedDates}
         style={styles.calendar}
         theme={{
-          calendarBackground: '#F8FAFC',
+          calendarBackground: '#FFFFFF',
           textSectionTitleColor: '#94A3B8',
           monthTextColor: '#111827',
           textMonthFontWeight: '500',
@@ -119,22 +119,28 @@ export default function CalendarScreen() {
           textDayFontFamily: 'RobotoMediumItalic',
           textMonthFontFamily: 'RobotoMediumItalic',
           textDayHeaderFontFamily: 'RobotoMediumItalic',
+          weekVerticalMargin: 0,
           // @ts-ignore - Common pattern for react-native-calendars
           'stylesheet.calendar.main': {
             container: {
               flex: 1,
               paddingLeft: 0,
               paddingRight: 0,
-              backgroundColor: '#F8FAFC',
+              marginTop: 0,
+              marginBottom: 0,
+              backgroundColor: '#FFFFFF',
+              height: '100%',
             },
             monthView: {
               flex: 1,
-              justifyContent: 'space-around',
+              marginBottom: 0,
+              paddingBottom: 0,
             },
             week: {
               flexDirection: 'row',
-              justifyContent: 'space-around',
               flex: 1,
+              marginVertical: 0,
+              paddingVertical: 0,
             },
           },
           'stylesheet.calendar.header': {
@@ -143,23 +149,16 @@ export default function CalendarScreen() {
               justifyContent: 'space-between',
               paddingLeft: 10,
               paddingRight: 10,
-              marginTop: 10,
+              marginTop: 0,
               alignItems: 'center',
               backgroundColor: '#FFF',
               borderBottomWidth: 1,
               borderBottomColor: '#E2E8F0',
-              paddingBottom: 15,
+              paddingBottom: 10,
             }
           }
         } as any}
       />
-
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push('/create-workout')}
-      >
-        <Plus color="#fff" size={32} />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -167,14 +166,20 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
   },
   calendar: {
     flex: 1,
+    paddingTop: 0,
+    marginTop: 0,
+    paddingBottom: 0,
+    marginBottom: 0,
+    height: '100%',
   },
   dayCell: {
+    flex: 1,
+    minHeight: 120,
     width: '100%',
-    height: 85,
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingTop: 4,
@@ -216,21 +221,5 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: '800',
     flex: 1,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 30,
-    right: 30,
-    backgroundColor: '#0066FF',
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#0066FF',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
   },
 });

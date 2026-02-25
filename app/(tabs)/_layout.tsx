@@ -1,7 +1,8 @@
 import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
+import { Link, Tabs, useRouter } from 'expo-router';
+import { Pressable, TouchableOpacity } from 'react-native';
+import { Plus } from 'lucide-react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -17,6 +18,7 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
 
   return (
     <Tabs
@@ -45,12 +47,21 @@ export default function TabLayout() {
         // Disable the static render of the header on web
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
+        headerTitleAlign: 'center',
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Calendrier',
           tabBarIcon: ({ color }) => <TabBarIcon name="calendar" color={color} />,
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => router.push('/create-workout')}
+              style={{ marginRight: 20, padding: 4 }}
+            >
+              <Plus size={24} color="#0066FF" />
+            </TouchableOpacity>
+          ),
         }}
       />
       <Tabs.Screen
