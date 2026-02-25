@@ -113,7 +113,8 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontWeight: '500',
+        fontFamily: 'RobotoMediumItalic',
         color: '#fff',
         textAlign: 'center',
     },
@@ -129,7 +130,8 @@ const styles = StyleSheet.create({
     aiBadgeText: {
         color: '#fff',
         fontSize: 12,
-        fontWeight: '600',
+        fontWeight: '500',
+        fontFamily: 'RobotoMediumItalic',
         marginLeft: 4,
     },
     content: {
@@ -141,7 +143,8 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 20,
-        fontWeight: 'bold',
+        fontWeight: '500',
+        fontFamily: 'RobotoMediumItalic',
         color: '#1f2937',
         marginBottom: 12,
     },
@@ -168,7 +171,8 @@ const styles = StyleSheet.create({
     },
     infoValue: {
         fontSize: 14,
-        fontWeight: 'bold',
+        fontWeight: '500',
+        fontFamily: 'RobotoMediumItalic',
         color: '#374151',
     },
     segmentCard: {

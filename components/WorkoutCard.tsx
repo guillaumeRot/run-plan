@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Text } from '@/components/Themed';
 import { Workout, WorkoutType } from '../types/workout';
 import { Sparkles, Activity } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
@@ -81,7 +82,8 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 18,
-        fontWeight: '900',
+        fontWeight: '500',
+        fontFamily: 'RobotoMediumItalic',
         color: '#111827',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
@@ -103,8 +105,8 @@ const styles = StyleSheet.create({
     date: {
         fontSize: 12,
         color: '#9CA3AF',
-        fontWeight: '700',
-        fontStyle: 'italic',
+        fontWeight: '500',
+        fontFamily: 'RobotoMediumItalic',
     },
     badge: {
         paddingHorizontal: 10,
@@ -113,7 +115,8 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         fontSize: 11,
-        fontWeight: '900',
+        fontWeight: '500',
+        fontFamily: 'RobotoMediumItalic',
         textTransform: 'uppercase',
     },
 });

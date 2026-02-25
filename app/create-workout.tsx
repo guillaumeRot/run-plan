@@ -117,7 +117,8 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 22,
-        fontWeight: '900',
+        fontWeight: '500',
+        fontFamily: 'RobotoMediumItalic',
         color: '#111827',
         textTransform: 'uppercase',
         letterSpacing: 1,
@@ -130,7 +131,8 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 12,
-        fontWeight: '900',
+        fontWeight: '500',
+        fontFamily: 'RobotoMediumItalic',
         color: '#94A3B8',
         textTransform: 'uppercase',
         letterSpacing: 1.5,
@@ -171,7 +173,8 @@ const styles = StyleSheet.create({
     },
     typeButtonText: {
         color: '#64748B',
-        fontWeight: '800',
+        fontWeight: '500',
+        fontFamily: 'RobotoMediumItalic',
         fontSize: 14,
     },
     typeButtonTextSelected: {
@@ -192,7 +195,8 @@ const styles = StyleSheet.create({
     },
     submitButtonText: {
         color: '#FFFFFF',
-        fontWeight: '900',
+        fontWeight: '500',
+        fontFamily: 'RobotoMediumItalic',
         fontSize: 18,
         textTransform: 'uppercase',
     },

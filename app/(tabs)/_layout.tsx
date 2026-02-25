@@ -34,11 +34,12 @@ export default function TabLayout() {
           backgroundColor: '#FFFFFF',
         },
         headerTitleStyle: {
-          fontWeight: '900',
+          fontWeight: '500',
           fontSize: 20,
           color: '#111827',
           textTransform: 'uppercase',
           letterSpacing: 1,
+          fontFamily: 'RobotoMediumItalic',
         },
         headerTintColor: '#0066FF',
         // Disable the static render of the header on web

@@ -114,8 +114,11 @@ export default function CalendarScreen() {
           calendarBackground: '#F8FAFC',
           textSectionTitleColor: '#94A3B8',
           monthTextColor: '#111827',
-          textMonthFontWeight: '900',
-          textDayHeaderFontWeight: '800',
+          textMonthFontWeight: '500',
+          textDayHeaderFontWeight: '500',
+          textDayFontFamily: 'RobotoMediumItalic',
+          textMonthFontFamily: 'RobotoMediumItalic',
+          textDayHeaderFontFamily: 'RobotoMediumItalic',
           // @ts-ignore - Common pattern for react-native-calendars
           'stylesheet.calendar.main': {
             container: {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { WorkoutCard } from '@/components/WorkoutCard';
@@ -9,20 +9,50 @@ import { useRouter } from 'expo-router';
 export default function ListScreen() {
   const router = useRouter();
   const { workouts } = useWorkouts();
-  // Sort workouts chronologically
-  const sortedWorkouts = [...workouts].sort((a, b) =>
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+
+  // Sort and group workouts by date
+  const groupedWorkouts = useMemo(() => {
+    const sorted = [...workouts].sort((a, b) =>
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    const groups: { date: string; sessions: any[] }[] = [];
+    sorted.forEach(workout => {
+      const existingGroup = groups.find(g => g.date === workout.date);
+      if (existingGroup) {
+        existingGroup.sessions.push(workout);
+      } else {
+        groups.push({ date: workout.date, sessions: [workout] });
+      }
+    });
+    return groups;
+  }, [workouts]);
+
+  const formatDateHeader = (isoDate: string) => {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>Séances à venir</Text>
-        {sortedWorkouts.map(w => (
-          <WorkoutCard key={w.id} workout={w} />
+        <Text style={styles.sectionTitle}>Mes Séances</Text>
+
+        {groupedWorkouts.map(group => (
+          <View key={group.date} style={styles.dateGroup}>
+            <Text style={styles.dateHeader}>{formatDateHeader(group.date)}</Text>
+            {group.sessions.map(w => (
+              <WorkoutCard key={w.id} workout={w} />
+            ))}
+          </View>
         ))}
 
-        {sortedWorkouts.length === 0 && (
+        {workouts.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>Aucune séance prévue pour le moment.</Text>
           </View>
@@ -63,9 +93,23 @@ const styles = StyleSheet.create({
   content: {
     paddingVertical: 20,
   },
+  dateGroup: {
+    marginBottom: 24,
+    backgroundColor: 'transparent',
+  },
+  dateHeader: {
+    fontSize: 13,
+    fontWeight: '500',
+    fontFamily: 'RobotoMediumItalic',
+    color: '#64748B',
+    marginHorizontal: 20,
+    marginBottom: 12,
+    textTransform: 'capitalize',
+  },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '500',
+    fontFamily: 'RobotoMediumItalic',
     marginHorizontal: 20,
     marginBottom: 20,
     color: '#94A3B8',
