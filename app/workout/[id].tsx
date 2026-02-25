@@ -1,12 +1,66 @@
 import { Text, View } from '@/components/Themed';
-import { TYPE_COLORS, TYPE_ICONS } from '@/constants/WorkoutStyles';
+import { SEGMENT_COLORS, TYPE_COLORS, TYPE_ICONS } from '@/constants/WorkoutStyles';
 import { useWorkouts } from '@/context/WorkoutContext';
+import { SegmentType, WorkoutSegment } from '@/types/workout';
 import { formatDateToFR } from '@/utils/date';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Activity, ArrowLeft, Sparkles } from 'lucide-react-native';
+import { Activity, ArrowLeft, Repeat, Sparkles } from 'lucide-react-native';
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
+const SEGMENT_LABELS: Record<string, string> = {
+    warmup: 'Échauffement',
+    run: 'Course à pied',
+    recovery: 'Récupération',
+    cooldown: 'Retour au calme',
+    repeat: 'Répétition',
+};
+
+const renderSegmentsRecursive = (segments: WorkoutSegment[], color: string, depth = 0) => {
+    return segments.map((segment) => {
+        const segmentColor = SEGMENT_COLORS[segment.type as SegmentType] || color;
+
+        if (segment.type === 'repeat') {
+            return (
+                <View key={segment.id} style={[styles.repeatContainer, { marginLeft: depth * 12, borderColor: SEGMENT_COLORS.repeat }]}>
+                    <View style={styles.repeatHeader}>
+                        <Repeat size={14} color={SEGMENT_COLORS.repeat} />
+                        <Text style={styles.repeatTitle}>{segment.repeatCount}x Répétitions</Text>
+                    </View>
+                    <View style={styles.repeatContent}>
+                        {renderSegmentsRecursive(segment.subSegments || [], color, depth + 1)}
+                    </View>
+                </View>
+            );
+        }
+
+        const targetValue = segment.targetValue || 0;
+        const target = segment.targetBasis === 'time'
+            ? `${Math.floor(targetValue / 60)}:${(targetValue % 60).toString().padStart(2, '0')}`
+            : `${(targetValue / 1000).toFixed(2)} km`;
+
+        const intensity = segment.intensityType === 'none' || !segment.intensityType ? 'Pas de cible' :
+            `${segment.intensityTarget?.min}-${segment.intensityTarget?.max} ${segment.intensityType === 'pace' ? '/km' : 'bpm'}`;
+
+        return (
+            <View key={segment.id} style={[styles.segmentCard, { marginLeft: depth * 12 }]}>
+                <View style={[styles.segmentType, { backgroundColor: segmentColor + '20' }]}>
+                    <Text style={[styles.segmentTypeText, { color: segmentColor }]}>{SEGMENT_LABELS[segment.type] || segment.type}</Text>
+                </View>
+                <View style={styles.segmentDetails}>
+                    <View style={styles.metricItem}>
+                        <Text style={styles.metricValue}>{target}</Text>
+                        <Text style={styles.metricLabel}>{segment.targetBasis === 'time' ? 'Temps' : 'Distance'}</Text>
+                    </View>
+                    <View style={styles.metricItem}>
+                        <Text style={styles.metricValue}>{intensity}</Text>
+                        <Text style={styles.metricLabel}>Intensité</Text>
+                    </View>
+                </View>
+            </View>
+        );
+    });
+};
 
 export default function WorkoutDetailScreen() {
     const { id } = useLocalSearchParams();
@@ -63,19 +117,9 @@ export default function WorkoutDetailScreen() {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Détails de la séance</Text>
                     {workout.segments.length > 0 ? (
-                        workout.segments.map((segment, index) => (
-                            <View key={segment.id} style={styles.segmentCard}>
-                                <View style={[styles.segmentType, { backgroundColor: color + '20' }]}>
-                                    <Text style={[styles.segmentTypeText, { color }]}>{segment.type}</Text>
-                                </View>
-                                <Text style={styles.segmentDescription}>{segment.description}</Text>
-                                <View style={styles.segmentFooter}>
-                                    {segment.duration && <Text style={styles.segmentMetric}>Durée: {segment.duration}</Text>}
-                                    {segment.distance && <Text style={styles.segmentMetric}>Distance: {segment.distance}</Text>}
-                                    {segment.intensity && <Text style={styles.segmentMetric}>Intensité: {segment.intensity}</Text>}
-                                </View>
-                            </View>
-                        ))
+                        <View style={{ backgroundColor: 'transparent' }}>
+                            {renderSegmentsRecursive(workout.segments, color)}
+                        </View>
                     ) : (
                         <Text style={styles.emptySegments}>Aucun détail fourni pour cette séance.</Text>
                     )}
@@ -195,23 +239,46 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textTransform: 'uppercase',
     },
-    segmentDescription: {
-        fontSize: 16,
-        color: '#1f2937',
-        marginBottom: 8,
-    },
-    segmentFooter: {
+    segmentDetails: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
+        marginTop: 8,
+        backgroundColor: 'transparent',
     },
-    segmentMetric: {
-        fontSize: 12,
-        color: '#6b7280',
-        backgroundColor: '#f9fafb',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
+    metricItem: {
+        flex: 1,
+        backgroundColor: 'transparent',
+    },
+    metricValue: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1E293B',
+    },
+    metricLabel: {
+        fontSize: 10,
+        color: '#64748B',
+        marginTop: 2,
+    },
+    repeatContainer: {
+        marginTop: 12,
+        borderLeftWidth: 3,
+        paddingLeft: 12,
+        backgroundColor: 'transparent',
+        marginBottom: 12,
+    },
+    repeatHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 4,
+        backgroundColor: 'transparent',
+    },
+    repeatTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#F59E0B',
+    },
+    repeatContent: {
+        backgroundColor: 'transparent',
     },
     emptySegments: {
         color: '#9ca3af',

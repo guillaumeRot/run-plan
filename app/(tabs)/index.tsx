@@ -47,32 +47,28 @@ export default function CalendarScreen() {
     let totalDist = 0;
     let totalDur = 0;
 
-    workout.segments.forEach((s: any) => {
-      if (s.distance) {
-        const d = parseFloat(s.distance.replace('km', ''));
-        if (!isNaN(d)) totalDist += d;
-      }
-      if (s.duration) {
-        // Handle "45min", "1h30", "90min"
-        let mins = 0;
-        const dur = s.duration.toLowerCase();
-        if (dur.includes('h')) {
-          const parts = dur.split('h');
-          mins += parseInt(parts[0]) * 60;
-          if (parts[1]) mins += parseInt(parts[1]);
+    const processSegments = (segments: any[], multiplier = 1) => {
+      segments.forEach((s: any) => {
+        if (s.type === 'repeat') {
+          processSegments(s.subSegments || [], multiplier * (s.repeatCount || 1));
         } else {
-          mins += parseInt(dur);
+          if (s.targetBasis === 'distance') {
+            totalDist += (s.targetValue / 1000) * multiplier;
+          } else if (s.targetBasis === 'time') {
+            totalDur += (s.targetValue / 60) * multiplier;
+          }
         }
-        if (!isNaN(mins)) totalDur += mins;
-      }
-    });
+      });
+    };
 
-    const distStr = totalDist > 0 ? `${totalDist} km` : null;
+    processSegments(workout.segments || []);
+
+    const distStr = totalDist > 0 ? `${totalDist.toFixed(1)} km` : null;
 
     let durStr = null;
     if (totalDur > 0) {
       const h = Math.floor(totalDur / 60);
-      const m = totalDur % 60;
+      const m = Math.round(totalDur % 60);
       if (h > 0) {
         durStr = `${h}h${m > 0 ? m : ''}`;
       } else {

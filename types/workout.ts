@@ -1,12 +1,23 @@
 export type WorkoutType = 'EF' | 'VMA courte' | 'Seuil' | 'Sortie longue' | 'Anaérobique' | 'Sprint' | 'VO2 max' | 'Récupération';
 
+export type SegmentType = 'warmup' | 'run' | 'recovery' | 'cooldown' | 'repeat';
+export type TargetBasis = 'time' | 'distance';
+export type IntensityType = 'pace' | 'hr' | 'none';
+
 export interface WorkoutSegment {
     id: string;
-    type: 'warmup' | 'main' | 'recovery' | 'cooldown';
-    description: string;
-    duration?: string; // e.g., "20min"
-    distance?: string; // e.g., "5km"
-    intensity?: string; // e.g., "70% HR", "Z2", "v-VMA"
+    type: SegmentType;
+    targetBasis?: TargetBasis;
+    targetValue?: number; // seconds for time, meters for distance
+    intensityType?: IntensityType;
+    intensityTarget?: {
+        min: string;
+        max: string;
+        value?: string;
+    };
+    description?: string;
+    repeatCount?: number; // For 'repeat' type
+    subSegments?: WorkoutSegment[]; // For 'repeat' type
 }
 
 export interface Workout {
@@ -18,3 +29,5 @@ export interface Workout {
     segments: WorkoutSegment[];
     isAIGenerated: boolean;
 }
+
+
