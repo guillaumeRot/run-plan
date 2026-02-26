@@ -1,9 +1,9 @@
 import { Text, View } from '@/components/Themed';
 import { SEGMENT_COLORS } from '@/constants/WorkoutStyles';
 import { useWorkouts } from '@/context/WorkoutContext';
-import { IntensityType, SegmentType, TargetBasis, WorkoutSegment, WorkoutType } from '@/types/workout';
+import { SegmentType, WorkoutSegment, WorkoutType } from '@/types/workout';
 import { useRouter } from 'expo-router';
-import { Clock, MapPin, Plus, Trash2, X, Zap } from 'lucide-react-native';
+import { Trash2, X, Zap } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 
@@ -23,14 +23,12 @@ const formatSecondsToMMSS = (totalSeconds: number) => {
 
 interface SegmentItemProps {
     segment: WorkoutSegment;
-    isEditing: boolean;
-    onEdit: () => void;
-    onUpdate: (updated: WorkoutSegment) => void;
-    onRemove: () => void;
+    onPress: (segment: WorkoutSegment) => void;
+    onRemove: (id: string) => void;
     depth: number;
 }
 
-const SegmentItem = ({ segment, isEditing, onEdit, onUpdate, onRemove, depth }: SegmentItemProps) => {
+const SegmentItem = ({ segment, onPress, onRemove, depth }: SegmentItemProps) => {
     const color = SEGMENT_COLORS[segment.type];
 
     const formatTarget = () => {
@@ -39,7 +37,7 @@ const SegmentItem = ({ segment, isEditing, onEdit, onUpdate, onRemove, depth }: 
         }
         if (segment.targetBasis === 'time') {
             const { mins, secs } = formatSecondsToMMSS(segment.targetValue || 0);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
+            return `${mins}:${secs.toString().padStart(2, '0')} min`;
         } else {
             return `${((segment.targetValue || 0) / 1000).toFixed(2)} km`;
         }
@@ -53,197 +51,44 @@ const SegmentItem = ({ segment, isEditing, onEdit, onUpdate, onRemove, depth }: 
         return `${segment.intensityTarget.min}-${segment.intensityTarget.max} ${unit}`;
     };
 
-    const handleDurationChange = (type: 'mins' | 'secs', value: string) => {
-        const currentVal = formatSecondsToMMSS(segment.targetValue || 0);
-        const newVal = parseInt(value) || 0;
-        const total = type === 'mins' ? newVal * 60 + currentVal.secs : currentVal.mins * 60 + newVal;
-        onUpdate({ ...segment, targetValue: total });
-    };
-
-    if (!isEditing) {
-        return (
-            <TouchableOpacity style={[styles.segmentCard, { marginLeft: 16 + depth * 12 }]} onPress={onEdit}>
-                <View style={[styles.segmentIndicator, { backgroundColor: color }]} />
-                <View style={styles.segmentContent}>
-                    <Text style={styles.segmentTypeLabel}>{SEGMENT_LABELS[segment.type]}</Text>
-                    <View style={styles.segmentMainRow}>
-                        <View style={styles.metricItem}>
-                            <Text style={styles.metricValue}>{formatTarget()}</Text>
-                            <Text style={styles.metricLabel}>{segment.type === 'repeat' ? 'Répétitions' : (segment.targetBasis === 'time' ? 'Temps' : 'Distance')}</Text>
-                        </View>
-                        <View style={styles.metricItem}>
-                            <Text style={styles.metricValue}>{formatIntensity()}</Text>
-                            <Text style={styles.metricLabel}>{segment.type === 'repeat' ? 'Contenu' : 'Objectif'}</Text>
-                        </View>
-                    </View>
-                </View>
-            </TouchableOpacity>
-        );
-    }
-
     return (
-        <View style={[styles.editCard, { marginLeft: 16 + depth * 12, borderColor: segment.type === 'repeat' ? SEGMENT_COLORS.repeat : '#0066FF' }]}>
+        <TouchableOpacity style={[styles.segmentCard, { marginLeft: 8 + depth * 6 }]} onPress={() => onPress(segment)}>
             <View style={[styles.segmentIndicator, { backgroundColor: color }]} />
-            <View style={styles.editContent}>
-                <View style={styles.editHeader}>
-                    <Text style={styles.editTitle}>{SEGMENT_LABELS[segment.type]}</Text>
-                    <TouchableOpacity onPress={onRemove}>
-                        <Trash2 size={20} color="#EF4444" />
+            <View style={[styles.segmentContent, depth > 0 && { padding: 6 }]}>
+                <View style={styles.segmentHeaderRow}>
+                    <Text style={styles.segmentTypeLabel}>{SEGMENT_LABELS[segment.type]}</Text>
+                    <TouchableOpacity onPress={() => onRemove(segment.id)}>
+                        <Trash2 size={16} color="#EF4444" />
                     </TouchableOpacity>
                 </View>
-
-                {segment.type === 'repeat' ? (
-                    <>
-                        <Text style={styles.subLabel}>Nombre de répétitions</Text>
-                        <TextInput
-                            style={styles.input}
-                            keyboardType="numeric"
-                            defaultValue={(segment.repeatCount || 1).toString()}
-                            onChangeText={(v) => onUpdate({ ...segment, repeatCount: parseInt(v) || 1 })}
-                        />
-                        <View style={styles.nestedContainer}>
-                            {segment.subSegments?.map((ss, idx) => (
-                                <SegmentItem
-                                    key={ss.id}
-                                    segment={ss}
-                                    isEditing={false} // Always show summary in nested view until clicked
-                                    onEdit={onEdit} // In this simple UX, clicking sub-segment also triggers main edit
-                                    onUpdate={(updated) => {
-                                        const newSub = [...(segment.subSegments || [])];
-                                        newSub[idx] = updated;
-                                        onUpdate({ ...segment, subSegments: newSub });
-                                    }}
-                                    onRemove={() => {
-                                        const newSub = (segment.subSegments || []).filter((_, i) => i !== idx);
-                                        onUpdate({ ...segment, subSegments: newSub });
-                                    }}
-                                    depth={depth + 1}
-                                />
-                            ))}
-                            {depth < 1 && ( // Max depth 2 (level 0 and 1)
-                                <TouchableOpacity
-                                    style={styles.addNestedBtn}
-                                    onPress={() => {
-                                        const newSub = [...(segment.subSegments || []), {
-                                            id: Math.random().toString(),
-                                            type: 'run' as SegmentType,
-                                            targetBasis: 'time' as TargetBasis,
-                                            targetValue: 60,
-                                            intensityType: 'none' as IntensityType,
-                                        } as WorkoutSegment];
-                                        onUpdate({ ...segment, subSegments: newSub });
-                                    }}
-                                >
-                                    <Plus size={16} color="#0066FF" />
-                                    <Text style={styles.addNestedText}>Ajouter sous-élément</Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    </>
-                ) : (
-                    <>
-                        {/* Basis Selection */}
-                        <View style={styles.row}>
-                            <TouchableOpacity
-                                style={[styles.basisButton, segment.targetBasis === 'time' && styles.basisButtonSelected]}
-                                onPress={() => onUpdate({ ...segment, targetBasis: 'time' })}
-                            >
-                                <Clock size={16} color={segment.targetBasis === 'time' ? '#FFF' : '#64748B'} />
-                                <Text style={[styles.basisText, segment.targetBasis === 'time' && styles.basisTextSelected]}>Durée</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.basisButton, segment.targetBasis === 'distance' && styles.basisButtonSelected]}
-                                onPress={() => onUpdate({ ...segment, targetBasis: 'distance' })}
-                            >
-                                <MapPin size={16} color={segment.targetBasis === 'distance' ? '#FFF' : '#64748B'} />
-                                <Text style={[styles.basisText, segment.targetBasis === 'distance' && styles.basisTextSelected]}>Distance</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Target Value Input */}
-                        {segment.targetBasis === 'time' ? (
-                            <View style={styles.row}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.subLabel}>Minutes</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        keyboardType="numeric"
-                                        placeholder="Min"
-                                        defaultValue={formatSecondsToMMSS(segment.targetValue || 0).mins.toString()}
-                                        onChangeText={(v) => handleDurationChange('mins', v)}
-                                    />
-                                </View>
-                                <View style={{ flex: 1, marginLeft: 10 }}>
-                                    <Text style={styles.subLabel}>Secondes</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        keyboardType="numeric"
-                                        placeholder="Sec"
-                                        defaultValue={formatSecondsToMMSS(segment.targetValue || 0).secs.toString()}
-                                        onChangeText={(v) => handleDurationChange('secs', v)}
-                                    />
-                                </View>
-                            </View>
-                        ) : (
-                            <>
-                                <Text style={styles.subLabel}>Distance (km)</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    keyboardType="numeric"
-                                    placeholder="ex: 5.0"
-                                    defaultValue={((segment.targetValue || 0) / 1000).toString()}
-                                    onChangeText={(v) => {
-                                        const val = parseFloat(v);
-                                        if (!isNaN(val)) onUpdate({ ...segment, targetValue: val * 1000 });
-                                    }}
-                                />
-                            </>
-                        )}
-
-                        {/* Intensity Selection */}
-                        <Text style={styles.subLabel}>Objectif d'intensité</Text>
-                        <View style={styles.row}>
-                            {(['none', 'pace', 'hr'] as IntensityType[]).map((it) => (
-                                <TouchableOpacity
-                                    key={it}
-                                    style={[styles.intensityButton, segment.intensityType === it && styles.intensityButtonSelected]}
-                                    onPress={() => onUpdate({ ...segment, intensityType: it, intensityTarget: it === 'none' ? undefined : { min: '', max: '' } })}
-                                >
-                                    <Text style={[styles.intensityText, segment.intensityType === it && styles.intensityTextSelected]}>
-                                        {it === 'none' ? 'Aucun' : it === 'pace' ? 'Allure' : 'FC'}
-                                    </Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
-
-                        {segment.intensityType !== 'none' && (
-                            <View style={styles.row}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.miniLabel}>Min</Text>
-                                    <TextInput
-                                        style={styles.miniInput}
-                                        placeholder={segment.intensityType === 'pace' ? '5:30' : '140'}
-                                        value={segment.intensityTarget?.min}
-                                        onChangeText={(v) => onUpdate({ ...segment, intensityTarget: { ...segment.intensityTarget!, min: v } })}
-                                    />
-                                </View>
-                                <View style={{ flex: 1, marginLeft: 10 }}>
-                                    <Text style={styles.miniLabel}>Max</Text>
-                                    <TextInput
-                                        style={styles.miniInput}
-                                        placeholder={segment.intensityType === 'pace' ? '5:10' : '150'}
-                                        value={segment.intensityTarget?.max}
-                                        onChangeText={(v) => onUpdate({ ...segment, intensityTarget: { ...segment.intensityTarget!, max: v } })}
-                                    />
-                                </View>
-                            </View>
-                        )}
-                    </>
+                <View style={styles.segmentMainRow}>
+                    <View style={styles.metricItem}>
+                        <Text style={styles.metricValue}>{formatTarget()}</Text>
+                        <Text style={styles.metricLabel}>{segment.type === 'repeat' ? 'Répétitions' : (segment.targetBasis === 'time' ? 'Temps' : 'Distance')}</Text>
+                    </View>
+                    <View style={styles.metricItem}>
+                        <Text style={styles.metricValue}>{formatIntensity()}</Text>
+                        <Text style={styles.metricLabel}>{segment.type === 'repeat' ? 'Contenu' : 'Objectif'}</Text>
+                    </View>
+                </View>
+                {segment.type === 'repeat' && segment.subSegments && segment.subSegments.length > 0 && (
+                    <View style={styles.nestedContainer}>
+                        {segment.subSegments.map((ss) => (
+                            <SegmentItem
+                                key={ss.id}
+                                segment={ss}
+                                onPress={onPress}
+                                onRemove={onRemove}
+                                depth={depth + 1}
+                            />
+                        ))}
+                    </View>
                 )}
             </View>
-        </View>
+        </TouchableOpacity>
     );
 };
+
 
 export default function CreateWorkoutScreen() {
     const router = useRouter();
@@ -252,10 +97,23 @@ export default function CreateWorkoutScreen() {
     const [title, setTitle] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [type, setType] = useState<WorkoutType>('EF');
-    const [segments, setSegments] = useState<WorkoutSegment[]>([]);
-    const [editingId, setEditingId] = useState<string | null>(null);
+    const { draftSegments, setDraftSegments } = useWorkouts();
+
+    const handlePressSegment = (seg: WorkoutSegment) => {
+        router.push({ pathname: '/edit-segment', params: { id: seg.id } });
+    };
 
     const handleAddSegment = (stype: SegmentType) => {
+        // Validation rules
+        if (stype === 'warmup' && draftSegments.some(s => s.type === 'warmup')) {
+            Alert.alert('Règle', 'Un seul échauffement est autorisé par séance.');
+            return;
+        }
+        if (stype === 'cooldown' && draftSegments.some(s => s.type === 'cooldown')) {
+            Alert.alert('Règle', 'Un seul retour au calme est autorisé par séance.');
+            return;
+        }
+
         const newSegment: WorkoutSegment = {
             id: Math.random().toString(),
             type: stype,
@@ -265,17 +123,32 @@ export default function CreateWorkoutScreen() {
             repeatCount: stype === 'repeat' ? 1 : undefined,
             subSegments: stype === 'repeat' ? [] : undefined,
         };
-        setSegments([...segments, newSegment]);
-        setEditingId(newSegment.id);
-    };
 
-    const handleUpdateSegment = (updated: WorkoutSegment) => {
-        setSegments(segments.map(s => s.id === updated.id ? updated : s));
+        const newSegments = [...draftSegments];
+
+        if (stype === 'warmup') {
+            newSegments.unshift(newSegment);
+        } else if (stype === 'cooldown') {
+            newSegments.push(newSegment);
+        } else {
+            const cooldownIdx = newSegments.findIndex(s => s.type === 'cooldown');
+            if (cooldownIdx !== -1) {
+                newSegments.splice(cooldownIdx, 0, newSegment);
+            } else {
+                newSegments.push(newSegment);
+            }
+        }
+
+        setDraftSegments(newSegments);
     };
 
     const handleRemoveSegment = (id: string) => {
-        setSegments(segments.filter(s => s.id !== id));
-        if (editingId === id) setEditingId(null);
+        const removeRecursive = (list: WorkoutSegment[]): WorkoutSegment[] => {
+            return list
+                .filter(s => s.id !== id)
+                .map(s => s.subSegments ? { ...s, subSegments: removeRecursive(s.subSegments) } : s);
+        };
+        setDraftSegments(removeRecursive(draftSegments));
     };
 
     const handleCreate = () => {
@@ -290,10 +163,11 @@ export default function CreateWorkoutScreen() {
             description: '',
             date,
             type,
-            segments,
+            segments: draftSegments,
             isAIGenerated: false,
         });
 
+        setDraftSegments([]); // Clear draft
         router.back();
     };
 
@@ -323,20 +197,18 @@ export default function CreateWorkoutScreen() {
                 </View>
 
                 <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 100 }}>
-                    {segments.length === 0 ? (
+                    {draftSegments.length === 0 ? (
                         <View style={styles.emptyState}>
                             <Zap size={48} color="#E2E8F0" />
                             <Text style={styles.emptyText}>Commencez à construire votre séance</Text>
                         </View>
                     ) : (
-                        segments.map(s => (
+                        draftSegments.map(s => (
                             <SegmentItem
                                 key={s.id}
                                 segment={s}
-                                isEditing={editingId === s.id}
-                                onEdit={() => setEditingId(s.id)}
-                                onUpdate={handleUpdateSegment}
-                                onRemove={() => handleRemoveSegment(s.id)}
+                                onPress={handlePressSegment}
+                                onRemove={handleRemoveSegment}
                                 depth={0}
                             />
                         ))
@@ -419,8 +291,8 @@ const styles = StyleSheet.create({
     },
     segmentCard: {
         backgroundColor: '#FFFFFF',
-        marginRight: 16,
-        marginTop: 12,
+        marginRight: 8,
+        marginTop: 8,
         borderRadius: 12,
         flexDirection: 'row',
         overflow: 'hidden',
@@ -432,7 +304,7 @@ const styles = StyleSheet.create({
     },
     segmentContent: {
         flex: 1,
-        padding: 12,
+        padding: 10,
         backgroundColor: 'transparent',
     },
     segmentTypeLabel: {
@@ -576,20 +448,15 @@ const styles = StyleSheet.create({
         paddingLeft: 4,
         borderLeftWidth: 1,
         borderLeftColor: '#E2E8F0',
-        backgroundColor: 'transparent',
+        backgroundColor: '#FCFDFF',
+        marginRight: -8, // Compensate for card margin to use full width
     },
-    addNestedBtn: {
+    segmentHeaderRow: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 12,
-        padding: 8,
+        marginBottom: 4,
         backgroundColor: 'transparent',
-    },
-    addNestedText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#0066FF',
-        marginLeft: 8,
     },
     addActions: {
         padding: 24,

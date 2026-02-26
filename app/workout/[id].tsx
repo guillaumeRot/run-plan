@@ -117,7 +117,7 @@ export default function WorkoutDetailScreen() {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Détails de la séance</Text>
                     {workout.segments.length > 0 ? (
-                        <View style={{ backgroundColor: 'transparent' }}>
+                        <View style={styles.segmentsWrapper}>
                             {renderSegmentsRecursive(workout.segments, color)}
                         </View>
                     ) : (
@@ -242,11 +242,12 @@ const styles = StyleSheet.create({
     segmentDetails: {
         flexDirection: 'row',
         marginTop: 8,
-        backgroundColor: 'transparent',
     },
     metricItem: {
         flex: 1,
-        backgroundColor: 'transparent',
+    },
+    segmentsWrapper: {
+        // No background set
     },
     metricValue: {
         fontSize: 18,
@@ -262,23 +263,24 @@ const styles = StyleSheet.create({
         marginTop: 12,
         borderLeftWidth: 3,
         paddingLeft: 12,
-        backgroundColor: 'transparent',
+        backgroundColor: '#FEFCE8', // Light amber background for visibility
         marginBottom: 12,
+        borderRadius: 4,
+        paddingVertical: 8,
     },
     repeatHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
-        marginBottom: 4,
-        backgroundColor: 'transparent',
+        marginBottom: 8,
     },
     repeatTitle: {
         fontSize: 14,
-        fontWeight: '700',
+        fontWeight: '900', // Stronger font weight for iOS
         color: '#F59E0B',
     },
     repeatContent: {
-        backgroundColor: 'transparent',
+        // Remove transparent background
     },
     emptySegments: {
         color: '#9ca3af',
