@@ -1,3 +1,5 @@
+import { SegmentItem } from '@/components/SegmentItem';
+import { SEGMENT_LABELS, formatSecondsToMMSS } from '@/constants/WorkoutConstants';
 import { SEGMENT_COLORS } from '@/constants/WorkoutStyles';
 import { useWorkouts } from '@/context/WorkoutContext';
 import { IntensityType, SegmentType, WorkoutSegment } from '@/types/workout';
@@ -5,20 +7,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Clock, MapPin, Plus, X } from 'lucide-react-native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
-const SEGMENT_LABELS: Record<SegmentType, string> = {
-    warmup: 'Échauffement',
-    run: 'Course à pied',
-    recovery: 'Récupération',
-    cooldown: 'Retour au calme',
-    repeat: 'Répétition',
-};
-
-const formatSecondsToMMSS = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return { mins, secs };
-};
 
 export default function EditSegmentScreen() {
     const router = useRouter();
@@ -96,8 +84,10 @@ export default function EditSegmentScreen() {
         } as WorkoutSegment];
         const updated = { ...local, subSegments: newSub };
         setLocal(updated);
-        // Important: we also update context so if we navigate further down it exists
         setDraftSegments(updateRecursive(draftSegments, updated));
+
+        // Navigate to the new segment
+        router.push({ pathname: '/edit-segment', params: { id: nextId } });
     };
 
     return (
@@ -122,6 +112,26 @@ export default function EditSegmentScreen() {
                             defaultValue={(local.repeatCount || 1).toString()}
                             onChangeText={(v) => setLocal({ ...local, repeatCount: parseInt(v) || 1 })}
                         />
+
+                        {local.subSegments && local.subSegments.length > 0 && (
+                            <View style={styles.subSegmentsList}>
+                                <Text style={styles.label}>Éléments contenus</Text>
+                                {local.subSegments.map((ss) => (
+                                    <SegmentItem
+                                        key={ss.id}
+                                        segment={ss}
+                                        onPress={(seg) => router.push({ pathname: '/edit-segment', params: { id: seg.id } })}
+                                        onRemove={(subId) => {
+                                            const newSub = local.subSegments?.filter(s => s.id !== subId);
+                                            const updated = { ...local, subSegments: newSub };
+                                            setLocal(updated);
+                                            setDraftSegments(updateRecursive(draftSegments, updated));
+                                        }}
+                                        depth={0}
+                                    />
+                                ))}
+                            </View>
+                        )}
 
                         {depth < 2 && (
                             <View style={styles.addWrapper}>
@@ -384,5 +394,9 @@ const styles = StyleSheet.create({
     addBtnText: {
         fontSize: 11,
         fontWeight: '700',
+    },
+    subSegmentsList: {
+        marginTop: 16,
+        marginBottom: 24,
     },
 });

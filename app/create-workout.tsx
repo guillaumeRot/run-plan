@@ -1,93 +1,13 @@
-import { Text, View } from '@/components/Themed';
+import { SegmentItem } from '@/components/SegmentItem';
 import { SEGMENT_COLORS } from '@/constants/WorkoutStyles';
 import { useWorkouts } from '@/context/WorkoutContext';
 import { SegmentType, WorkoutSegment, WorkoutType } from '@/types/workout';
 import { useRouter } from 'expo-router';
-import { Trash2, X, Zap } from 'lucide-react-native';
+import { X, Zap } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-const SEGMENT_LABELS: Record<SegmentType, string> = {
-    warmup: 'Échauffement',
-    run: 'Course à pied',
-    recovery: 'Récupération',
-    cooldown: 'Retour au calme',
-    repeat: 'Répétition',
-};
-
-const formatSecondsToMMSS = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return { mins, secs };
-};
-
-interface SegmentItemProps {
-    segment: WorkoutSegment;
-    onPress: (segment: WorkoutSegment) => void;
-    onRemove: (id: string) => void;
-    depth: number;
-}
-
-const SegmentItem = ({ segment, onPress, onRemove, depth }: SegmentItemProps) => {
-    const color = SEGMENT_COLORS[segment.type];
-
-    const formatTarget = () => {
-        if (segment.type === 'repeat') {
-            return `${segment.repeatCount}x`;
-        }
-        if (segment.targetBasis === 'time') {
-            const { mins, secs } = formatSecondsToMMSS(segment.targetValue || 0);
-            return `${mins}:${secs.toString().padStart(2, '0')} min`;
-        } else {
-            return `${((segment.targetValue || 0) / 1000).toFixed(2)} km`;
-        }
-    };
-
-    const formatIntensity = () => {
-        if (segment.type === 'repeat') return `${segment.subSegments?.length || 0} éléments`;
-        if (segment.intensityType === 'none') return 'Pas de cible';
-        if (!segment.intensityTarget) return '-';
-        const unit = segment.intensityType === 'pace' ? '/km' : 'bpm';
-        return `${segment.intensityTarget.min}-${segment.intensityTarget.max} ${unit}`;
-    };
-
-    return (
-        <TouchableOpacity style={[styles.segmentCard, { marginLeft: 8 + depth * 6 }]} onPress={() => onPress(segment)}>
-            <View style={[styles.segmentIndicator, { backgroundColor: color }]} />
-            <View style={[styles.segmentContent, depth > 0 && { padding: 6 }]}>
-                <View style={styles.segmentHeaderRow}>
-                    <Text style={styles.segmentTypeLabel}>{SEGMENT_LABELS[segment.type]}</Text>
-                    <TouchableOpacity onPress={() => onRemove(segment.id)}>
-                        <Trash2 size={16} color="#EF4444" />
-                    </TouchableOpacity>
-                </View>
-                <View style={styles.segmentMainRow}>
-                    <View style={styles.metricItem}>
-                        <Text style={styles.metricValue}>{formatTarget()}</Text>
-                        <Text style={styles.metricLabel}>{segment.type === 'repeat' ? 'Répétitions' : (segment.targetBasis === 'time' ? 'Temps' : 'Distance')}</Text>
-                    </View>
-                    <View style={styles.metricItem}>
-                        <Text style={styles.metricValue}>{formatIntensity()}</Text>
-                        <Text style={styles.metricLabel}>{segment.type === 'repeat' ? 'Contenu' : 'Objectif'}</Text>
-                    </View>
-                </View>
-                {segment.type === 'repeat' && segment.subSegments && segment.subSegments.length > 0 && (
-                    <View style={styles.nestedContainer}>
-                        {segment.subSegments.map((ss) => (
-                            <SegmentItem
-                                key={ss.id}
-                                segment={ss}
-                                onPress={onPress}
-                                onRemove={onRemove}
-                                depth={depth + 1}
-                            />
-                        ))}
-                    </View>
-                )}
-            </View>
-        </TouchableOpacity>
-    );
-};
+// End of local SegmentItem removal
 
 
 export default function CreateWorkoutScreen() {
@@ -140,6 +60,7 @@ export default function CreateWorkoutScreen() {
         }
 
         setDraftSegments(newSegments);
+        router.push({ pathname: '/edit-segment', params: { id: newSegment.id } });
     };
 
     const handleRemoveSegment = (id: string) => {
