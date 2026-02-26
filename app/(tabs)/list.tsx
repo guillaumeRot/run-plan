@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { WorkoutCard } from '@/components/WorkoutCard';
 import { useWorkouts } from '@/context/WorkoutContext';
-import { Plus } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { Plus } from 'lucide-react-native';
+import React, { useMemo } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function ListScreen() {
   const router = useRouter();
@@ -41,7 +41,6 @@ export default function ListScreen() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>Mes Séances</Text>
 
         {groupedWorkouts.map(group => (
           <View key={group.date} style={styles.dateGroup}>

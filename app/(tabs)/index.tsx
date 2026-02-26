@@ -70,9 +70,9 @@ export default function CalendarScreen() {
       const h = Math.floor(totalDur / 60);
       const m = Math.round(totalDur % 60);
       if (h > 0) {
-        durStr = `${h}h${m > 0 ? m : ''}`;
+        durStr = `${h}H${m > 0 ? ` ${m}MIN` : ''}`;
       } else {
-        durStr = `${m} min`;
+        durStr = `${m} MIN`;
       }
     }
 
@@ -257,11 +257,12 @@ const styles = StyleSheet.create({
   },
   workoutText: {
     color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '700',
+    fontSize: 8,
+    fontWeight: '800',
     fontFamily: 'RobotoMediumItalic',
     textAlign: 'center',
-    lineHeight: 11,
+    lineHeight: 10,
+    textTransform: 'uppercase',
   },
 });
 
