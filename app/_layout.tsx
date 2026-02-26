@@ -59,6 +59,8 @@ function RootLayoutNav() {
           <Stack.Screen name="workout/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="create-workout" options={{ headerShown: false }} />
           <Stack.Screen name="edit-segment" options={{ headerShown: false }} />
+          <Stack.Screen name="profile/account-info" options={{ headerShown: true, title: 'Infos du compte' }} />
+          <Stack.Screen name="profile/connectivity" options={{ headerShown: true, title: 'Connectivité' }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         </Stack>
       </ThemeProvider>

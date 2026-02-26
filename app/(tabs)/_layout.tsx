@@ -1,19 +1,18 @@
-import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs, useRouter } from 'expo-router';
-import { Pressable, TouchableOpacity } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
 import { Plus } from 'lucide-react-native';
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { useColorScheme } from '@/components/useColorScheme';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  return <FontAwesome size={22} style={{ marginBottom: -3 }} {...props} />;
 }
 
 export default function TabLayout() {
@@ -29,8 +28,10 @@ export default function TabLayout() {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E2E8F0',
-          paddingBottom: 5,
-          height: 60,
+          paddingBottom: 25,
+          paddingTop: 12,
+          paddingHorizontal: 20,
+          height: 85,
         },
         headerStyle: {
           backgroundColor: '#FFFFFF',
@@ -65,17 +66,24 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="coach"
-        options={{
-          title: 'Coach IA',
-          tabBarIcon: ({ color }) => <TabBarIcon name="magic" color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="list"
         options={{
           title: 'Séances',
           tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="stats"
+        options={{
+          title: 'Statistiques',
+          tabBarIcon: ({ color }) => <TabBarIcon name="bar-chart" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profil',
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />
     </Tabs>
