@@ -23,7 +23,7 @@ export default function ProfileScreen() {
             const newMode = userMode === 'sportif' ? 'coach' : 'sportif';
             setUserMode(newMode);
             setIsLoadingMode(false);
-            router.replace('/(tabs)/index');
+            router.replace('/' as any);
         }, 2000);
     };
 
