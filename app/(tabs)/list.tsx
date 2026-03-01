@@ -43,7 +43,6 @@ export default function ListScreen() {
     return (
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.content}>
-          <Text style={styles.sectionTitle}>Mes Sportifs</Text>
           {ATHLETES.map(athlete => (
             <TouchableOpacity key={athlete.id} style={styles.athleteCard}>
               <View style={styles.athleteInfo}>

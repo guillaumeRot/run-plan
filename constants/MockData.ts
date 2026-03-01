@@ -89,4 +89,16 @@ export const MOCK_WORKOUTS: Workout[] = [
             },
         ],
     },
+    {
+        id: '6',
+        title: 'Sortie Marie',
+        description: 'Test coach mode.',
+        isAIGenerated: false,
+        date: '2026-02-24',
+        type: 'EF',
+        athleteId: '2',
+        segments: [
+            { id: 's20', type: 'run', targetBasis: 'time', targetValue: 3600, intensityType: 'none' }
+        ],
+    },
 ];

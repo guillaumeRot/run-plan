@@ -1,4 +1,5 @@
 import { Text, View } from '@/components/Themed';
+import { ATHLETES } from '@/constants/AthleteData';
 import { TYPE_COLORS, TYPE_ICONS } from '@/constants/WorkoutStyles';
 import { useWorkouts } from '@/context/WorkoutContext';
 import { formatDateToFR } from '@/utils/date';
@@ -9,7 +10,7 @@ import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function DayWorkoutsScreen() {
     const { date } = useLocalSearchParams();
-    const { workouts } = useWorkouts();
+    const { workouts, userMode } = useWorkouts();
     const router = useRouter();
 
     const dayWorkouts = workouts.filter((w) => w.date === date);
@@ -37,7 +38,8 @@ export default function DayWorkoutsScreen() {
                 }
                 renderItem={({ item }) => {
                     const Icon = TYPE_ICONS[item.type] || Activity;
-                    const color = TYPE_COLORS[item.type] || '#ccc';
+                    const athlete = item.athleteId ? ATHLETES.find(a => a.id === item.athleteId) : null;
+                    const color = userMode === 'coach' && athlete ? athlete.color : (TYPE_COLORS[item.type] || '#ccc');
 
                     return (
                         <TouchableOpacity
@@ -48,7 +50,14 @@ export default function DayWorkoutsScreen() {
                                 <Icon size={24} color={color} />
                             </View>
                             <View style={styles.workoutInfo}>
-                                <Text style={styles.workoutTitle}>{item.title}</Text>
+                                <View style={styles.titleRow}>
+                                    <Text style={styles.workoutTitle}>{item.title}</Text>
+                                    {userMode === 'coach' && athlete && (
+                                        <View style={[styles.athleteBadge, { backgroundColor: athlete.color + '20' }]}>
+                                            <Text style={[styles.athleteBadgeText, { color: athlete.color }]}>{athlete.name}</Text>
+                                        </View>
+                                    )}
+                                </View>
                                 <Text style={styles.workoutType}>{item.type}</Text>
                             </View>
                             <ChevronRight size={20} color="#94A3B8" />
@@ -118,11 +127,30 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'transparent',
     },
+    titleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: 'transparent',
+        marginBottom: 2,
+    },
     workoutTitle: {
         fontSize: 16,
         fontWeight: '600',
         color: '#1E293B',
         fontFamily: 'RobotoMediumItalic',
+        flex: 1,
+    },
+    athleteBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 8,
+        marginLeft: 8,
+    },
+    athleteBadgeText: {
+        fontSize: 10,
+        fontWeight: '700',
+        textTransform: 'uppercase',
     },
     workoutType: {
         fontSize: 13,
