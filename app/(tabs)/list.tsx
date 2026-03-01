@@ -1,14 +1,15 @@
 import { Text, View } from '@/components/Themed';
 import { WorkoutCard } from '@/components/WorkoutCard';
+import { ATHLETES } from '@/constants/AthleteData';
 import { useWorkouts } from '@/context/WorkoutContext';
 import { useRouter } from 'expo-router';
-import { Plus } from 'lucide-react-native';
+import { ChevronRight, Plus } from 'lucide-react-native';
 import React, { useMemo } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function ListScreen() {
   const router = useRouter();
-  const { workouts } = useWorkouts();
+  const { workouts, userMode } = useWorkouts();
 
   // Sort and group workouts by date
   const groupedWorkouts = useMemo(() => {
@@ -37,6 +38,33 @@ export default function ListScreen() {
       year: 'numeric'
     });
   };
+
+  if (userMode === 'coach') {
+    return (
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <Text style={styles.sectionTitle}>Mes Sportifs</Text>
+          {ATHLETES.map(athlete => (
+            <TouchableOpacity key={athlete.id} style={styles.athleteCard}>
+              <View style={styles.athleteInfo}>
+                <View style={[styles.athleteAvatar, { backgroundColor: athlete.color + '15' }]}>
+                  <Text style={[styles.athleteInitial, { color: athlete.color }]}>{athlete.name[0]}</Text>
+                </View>
+                <View style={{ backgroundColor: 'transparent' }}>
+                  <Text style={styles.athleteName}>{athlete.name}</Text>
+                  <Text style={styles.athleteDetail}>{athlete.level} • Synchro {athlete.lastSync}</Text>
+                </View>
+              </View>
+              <ChevronRight size={20} color="#94A3B8" />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        <TouchableOpacity style={styles.fab}>
+          <Plus color="#fff" size={32} />
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -123,5 +151,49 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontSize: 16,
     fontWeight: '600',
+  },
+  athleteCard: {
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  athleteInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  athleteAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E0EEFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  athleteInitial: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#0066FF',
+  },
+  athleteName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  athleteDetail: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2,
   },
 });

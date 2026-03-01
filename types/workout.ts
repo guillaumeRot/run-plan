@@ -28,6 +28,7 @@ export interface Workout {
     type: WorkoutType;
     segments: WorkoutSegment[];
     isAIGenerated: boolean;
+    athleteId?: string;
 }
 
 

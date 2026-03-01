@@ -1,4 +1,5 @@
 import { Text, View } from '@/components/Themed';
+import { useWorkouts } from '@/context/WorkoutContext';
 import { useRouter } from 'expo-router';
 import {
     Activity,
@@ -14,8 +15,27 @@ import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function ProfileScreen() {
     const router = useRouter();
+    const { userMode, setUserMode, setIsLoadingMode } = useWorkouts();
+
+    const handleModeSwitch = () => {
+        setIsLoadingMode(true);
+        setTimeout(() => {
+            const newMode = userMode === 'sportif' ? 'coach' : 'sportif';
+            setUserMode(newMode);
+            setIsLoadingMode(false);
+            router.replace('/(tabs)/index');
+        }, 2000);
+    };
 
     const menuItems = [
+        {
+            id: 'mode-switch',
+            title: userMode === 'sportif' ? 'Passer au mode Coach' : 'Passer au mode Sportif',
+            icon: userMode === 'sportif' ? Shield : User,
+            onPress: handleModeSwitch,
+            color: '#0066FF',
+            isSwitch: true
+        },
         {
             id: 'account',
             title: 'Infos du compte',
@@ -54,9 +74,16 @@ export default function ProfileScreen() {
                             style={[
                                 styles.menuItem,
                                 index === 0 && styles.firstMenuItem,
-                                index === menuItems.length - 1 && styles.lastMenuItem
+                                index === menuItems.length - 1 && styles.lastMenuItem,
+                                item.isSwitch && styles.switchItem
                             ]}
-                            onPress={() => item.route && router.push(item.route)}
+                            onPress={() => {
+                                if (item.onPress) {
+                                    item.onPress();
+                                } else if (item.route) {
+                                    router.push(item.route as any);
+                                }
+                            }}
                         >
                             <View style={styles.menuItemLeft}>
                                 <View style={[styles.iconContainer, { backgroundColor: item.color + '15' }]}>
@@ -172,6 +199,9 @@ const styles = StyleSheet.create({
         borderBottomWidth: 0,
         borderBottomLeftRadius: 16,
         borderBottomRightRadius: 16,
+    },
+    switchItem: {
+        backgroundColor: '#F0F7FF',
     },
     menuItemLeft: {
         flexDirection: 'row',

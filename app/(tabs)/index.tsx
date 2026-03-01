@@ -1,4 +1,5 @@
 import { Text, View } from '@/components/Themed';
+import { getAthleteColor } from '@/constants/AthleteData';
 import { TYPE_COLORS, TYPE_ICONS } from '@/constants/WorkoutStyles';
 import { useWorkouts } from '@/context/WorkoutContext';
 import { useRouter } from 'expo-router';
@@ -15,7 +16,7 @@ const MONTHS = [
 export default function CalendarScreen() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
-  const { workouts } = useWorkouts();
+  const { workouts, userMode } = useWorkouts();
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -108,13 +109,27 @@ export default function CalendarScreen() {
             </Text>
           </View>
 
-          {firstWorkout && (
-            <View style={[styles.workoutBlock, { backgroundColor: TYPE_COLORS[firstWorkout.type] || '#ccc' }]}>
-              {Icon && <Icon size={12} color="#FFFFFF" style={styles.workoutIcon} />}
-              <View style={styles.metricsContainer}>
-                {metrics?.distStr && <Text style={styles.workoutText}>{metrics.distStr}</Text>}
-                {metrics?.durStr && <Text style={styles.workoutText}>{metrics.durStr}</Text>}
+          {userMode === 'sportif' ? (
+            firstWorkout && (
+              <View style={[styles.workoutBlock, { backgroundColor: TYPE_COLORS[firstWorkout.type] || '#ccc' }]}>
+                {Icon && <Icon size={12} color="#FFFFFF" style={styles.workoutIcon} />}
+                <View style={styles.metricsContainer}>
+                  {metrics?.distStr && <Text style={styles.workoutText}>{metrics.distStr}</Text>}
+                  {metrics?.durStr && <Text style={styles.workoutText}>{metrics.durStr}</Text>}
+                </View>
               </View>
+            )
+          ) : (
+            <View style={styles.coachWorkoutsContainer}>
+              {dayWorkouts.map((w, idx) => (
+                <View
+                  key={w.id}
+                  style={[
+                    styles.coachWorkoutMini,
+                    { backgroundColor: getAthleteColor(w.athleteId) }
+                  ]}
+                />
+              ))}
             </View>
           )}
         </TouchableOpacity>
@@ -143,7 +158,10 @@ export default function CalendarScreen() {
         <TouchableOpacity onPress={prevMonth} style={styles.navButton}>
           <ChevronLeft size={24} color="#0066FF" />
         </TouchableOpacity>
-        <Text style={styles.monthTitle}>{MONTHS[month]} {year}</Text>
+        <Text style={styles.monthTitle}>
+          {MONTHS[month]} {year}
+          {userMode === 'coach' && " (Vue Coach)"}
+        </Text>
         <TouchableOpacity onPress={nextMonth} style={styles.navButton}>
           <ChevronRight size={24} color="#0066FF" />
         </TouchableOpacity>
@@ -263,6 +281,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 10,
     textTransform: 'uppercase',
+  },
+  coachWorkoutsContainer: {
+    width: '100%',
+    paddingHorizontal: 4,
+    marginTop: 2,
+    flexDirection: 'column',
+    gap: 2,
+    backgroundColor: 'transparent',
+  },
+  coachWorkoutMini: {
+    width: '100%',
+    height: 4,
+    borderRadius: 2,
   },
 });
 

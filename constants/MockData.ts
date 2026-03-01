@@ -8,6 +8,7 @@ export const MOCK_WORKOUTS: Workout[] = [
         isAIGenerated: false,
         date: '2026-02-24',
         type: 'EF',
+        athleteId: '1',
         segments: [
             { id: 's1', type: 'run', targetBasis: 'time', targetValue: 2700, intensityType: 'hr', intensityTarget: { min: '130', max: '145' } },
         ],
@@ -19,6 +20,7 @@ export const MOCK_WORKOUTS: Workout[] = [
         isAIGenerated: true,
         date: '2026-02-25',
         type: 'VMA courte',
+        athleteId: '2',
         segments: [
             { id: 's2', type: 'warmup', targetBasis: 'time', targetValue: 1200, intensityType: 'none' },
             {
@@ -40,6 +42,7 @@ export const MOCK_WORKOUTS: Workout[] = [
         isAIGenerated: false,
         date: '2026-02-26',
         type: 'Seuil',
+        athleteId: '3',
         segments: [
             { id: 's6', type: 'warmup', targetBasis: 'time', targetValue: 900, intensityType: 'none' },
             {
@@ -61,6 +64,7 @@ export const MOCK_WORKOUTS: Workout[] = [
         isAIGenerated: false,
         date: '2026-03-01',
         type: 'Sortie longue',
+        athleteId: '1',
         segments: [
             { id: 's10', type: 'run', targetBasis: 'time', targetValue: 5400, intensityType: 'hr', intensityTarget: { min: '135', max: '150' } },
         ],
@@ -72,6 +76,7 @@ export const MOCK_WORKOUTS: Workout[] = [
         isAIGenerated: true,
         date: '2026-02-27',
         type: 'Anaérobique',
+        athleteId: '4',
         segments: [
             {
                 id: 's11',

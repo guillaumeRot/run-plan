@@ -7,6 +7,10 @@ interface WorkoutContextType {
     addWorkout: (workout: Workout) => void;
     draftSegments: WorkoutSegment[];
     setDraftSegments: (segments: WorkoutSegment[]) => void;
+    userMode: 'sportif' | 'coach';
+    setUserMode: (mode: 'sportif' | 'coach') => void;
+    isLoadingMode: boolean;
+    setIsLoadingMode: (loading: boolean) => void;
 }
 
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
@@ -14,13 +18,24 @@ const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
 export function WorkoutProvider({ children }: { children: ReactNode }) {
     const [workouts, setWorkouts] = useState<Workout[]>(MOCK_WORKOUTS);
     const [draftSegments, setDraftSegments] = useState<WorkoutSegment[]>([]);
+    const [userMode, setUserMode] = useState<'sportif' | 'coach'>('sportif');
+    const [isLoadingMode, setIsLoadingMode] = useState(false);
 
     const addWorkout = (workout: Workout) => {
         setWorkouts((prev) => [...prev, workout]);
     };
 
     return (
-        <WorkoutContext.Provider value={{ workouts, addWorkout, draftSegments, setDraftSegments }}>
+        <WorkoutContext.Provider value={{
+            workouts,
+            addWorkout,
+            draftSegments,
+            setDraftSegments,
+            userMode,
+            setUserMode,
+            isLoadingMode,
+            setIsLoadingMode
+        }}>
             {children}
         </WorkoutContext.Provider>
     );
